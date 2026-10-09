@@ -8,17 +8,23 @@ SOC triage lab built with Splunk — log ingestion, detection rules, and inciden
 - **Verdict:** Likely benign (authorized scan), but would need confirmation
 - **Recommended next step:** Confirm with IT/security whether the scan was scheduled and approved. If not, investigate as potential unauthorized reconnaissance.
 
-- ## Finding #2: Ransomware Infection on WE8105DESK (user: bob.smith)
+## Finding #2: Ransomware Infection on WE8105DESK (user: bob.smith)
 
-- **What:** A script dropper (20429.vbs) launched a payload that disguised itself
-  as osk.exe in a GUID-named AppData folder. It deleted shadow copies and disabled
-  Windows recovery (vssadmin, wmic, bcdedit), displayed a ransom note
-  ("# DECRYPT MY FILES #"), then deleted itself.
-- **Where:** Sysmon EventID 3 (network) and EventID 1 (process creation), host we8105desk
+- **What:** A malicious macro-enabled Word document launched a script dropper
+  (20429.vbs), which started a payload disguised as osk.exe in a GUID-named
+  AppData folder. The malware deleted shadow copies and disabled Windows recovery
+  (vssadmin, wmic, bcdedit), displayed a ransom note ("# DECRYPT MY FILES #"),
+  then deleted itself.
+- **Where:** Sysmon EventID 1 (process creation) and EventID 3 (network), host we8105desk
+- **Initial access:** User opened D:\Miranda_Tate_unveiled.dotm (macro-enabled Word
+  template) at 17:43:12. Word spawned cmd.exe nine seconds later, which wrote and
+  launched the VBScript dropper. Delivery method unconfirmed (file was on D:\ drive).
 - **Evidence:** osk.exe running from AppData (legitimate path is System32); wscript.exe
   making external connections to 37[.]187[.]37[.]150 and 92[.]222[.]104[.]182
-- **Timeline:** 17:43 dropper runs -> 17:49 recovery destroyed -> 18:15 ransom note shown -> self-delete
-- **MITRE ATT&CK:** T1059.005 (VBScript), T1036 (Masquerading), T1490 (Inhibit System Recovery), T1070.004 (File Deletion)
+- **Timeline:** 17:43 malicious doc opened -> 17:43 dropper runs -> 17:49 recovery
+  destroyed -> 18:15 ransom note shown -> self-delete
+- **MITRE ATT&CK:** T1204.002 (User Execution: Malicious File), T1059.005 (VBScript),
+  T1036 (Masquerading), T1490 (Inhibit System Recovery), T1070.004 (File Deletion)
 - **Verdict:** True positive, high severity
 - **Recommended actions:** Isolate the host, block the IPs above, reset bob.smith's credentials,
   restore from offline backup, and find the initial infection vector
